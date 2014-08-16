@@ -1,4 +1,4 @@
-# Version 0.1
+# Version 0.2
 
 FROM	dockerfile/ubuntu
 
@@ -7,15 +7,14 @@ RUN	\
 	apt-get install -y -qq python python-dev python-pip
 
 # Copy Source
-RUN \
-    mkdir /src; cd /src; git clone https://github.com/abh1nav/mapper.git
+ADD .   /src
 
 # Install dependencies
 RUN \
-    cd /src/mapper; pip install -r requirements.txt
+    cd /src; pip install -r requirements.txt
 
 EXPOSE 5000
 
-WORKDIR /src/mapper
+WORKDIR /src
 
-CMD ["python", "server.py"]
+CMD ["/src/run.sh"]
