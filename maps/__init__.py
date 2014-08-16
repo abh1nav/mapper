@@ -17,7 +17,7 @@ class MapsProxy(object):
     @cherrypy.expose
     @cherrypy.tools.json_out()
     def index(self):
-        return {'status': 'ok', 'service': 'mapper'}
+        return {'status': 'ok', 'service': 'mapper/proxy'}
 
     @cherrypy.expose
     @cherrypy.tools.json_out()

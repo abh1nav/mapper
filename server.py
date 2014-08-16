@@ -5,6 +5,13 @@ import cherrypy
 
 from maps import MapsProxy
 
+class RootHandler(object):
+
+    @cherrypy.expose
+    @cherrypy.tools.json_out()
+    def index(self):
+        return {'status': 'ok', 'service': 'mapper'}
+
 def bootstrap():
     proxy = MapsProxy()
     cherrypy.tree.mount(proxy, '/proxy')
