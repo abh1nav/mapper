@@ -4,6 +4,7 @@
 import cherrypy
 
 from maps import MapsProxy
+from decision import Decision
 
 class RootHandler(object):
 
@@ -13,8 +14,13 @@ class RootHandler(object):
         return {'status': 'ok', 'service': 'mapper'}
 
 def bootstrap():
+    root = RootHandler()
     proxy = MapsProxy()
+    decision = Decision()
+
+    cherrypy.tree.mount(root)
     cherrypy.tree.mount(proxy, '/proxy')
+    cherrypy.tree.mount(decision, '/d')
     cherrypy.config.update({
         'server.socket_host': '0.0.0.0',
         'server.socket_port': 5000
