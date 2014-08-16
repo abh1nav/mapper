@@ -9,7 +9,7 @@ import requests
 from cache import Cache
 import conf
 
-class Handler(object):
+class MapsProxy(object):
 
     def __init__(self):
         self.cache = Cache()

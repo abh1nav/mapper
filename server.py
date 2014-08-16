@@ -3,11 +3,11 @@
 
 import cherrypy
 
-from handler import Handler
+from maps import MapsProxy
 
 def bootstrap():
-    root_handler = Handler()
-    cherrypy.tree.mount(root_handler)
+    proxy = MapsProxy()
+    cherrypy.tree.mount(proxy, '/proxy')
     cherrypy.config.update({
         'server.socket_host': '0.0.0.0',
         'server.socket_port': 5000
