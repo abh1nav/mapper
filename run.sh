@@ -1,4 +1,4 @@
 #!/bin/bash
-cd /src/mapper
+cd /src
 git pull origin master
 python server.py

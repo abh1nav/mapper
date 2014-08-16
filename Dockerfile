@@ -9,6 +9,9 @@ RUN	\
 # Copy Source
 ADD .   /src
 
+RUN \
+    cd /src; git remote rm origin; git remote add origin https://github.com/abh1nav/mapper.git;
+
 # Install dependencies
 RUN \
     cd /src; pip install -r requirements.txt
