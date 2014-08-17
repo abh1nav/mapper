@@ -19,9 +19,7 @@ class MapsProxy(object):
     def index(self):
         return {'status': 'ok', 'service': 'mapper/proxy'}
 
-    @cherrypy.expose
-    @cherrypy.tools.json_out()
-    def transit(self, src, tar, arrival_time=None, departure_time=None):
+    def p_transit(self, src, tar, arrival_time=None, departure_time=None):
         if arrival_time is None and departure_time is None:
             return {
                 'error': 'Either arrival_time or departure_time must be provided'
@@ -50,9 +48,9 @@ class MapsProxy(object):
         else:
             return r.json()
 
-    @cherrypy.expose
-    @cherrypy.tools.json_out()
-    def biking(self, src, tar, arrival_time=None, departure_time=None):
+
+
+    def p_biking(self, src, tar, arrival_time=None, departure_time=None):
         if arrival_time is None and departure_time is None:
             return {
                 'error': 'Either arrival_time or departure_time must be provided'
@@ -81,9 +79,7 @@ class MapsProxy(object):
         else:
             return r.json()
 
-    @cherrypy.expose
-    @cherrypy.tools.json_out()
-    def driving(self, src, tar, arrival_time=None, departure_time=None):
+    def p_driving(self, src, tar, arrival_time=None, departure_time=None):
         if arrival_time is None and departure_time is None:
             return {
                 'error': 'Either arrival_time or departure_time must be provided'
@@ -111,3 +107,18 @@ class MapsProxy(object):
             return j
         else:
             return r.json()
+
+    @cherrypy.expose
+    @cherrypy.tools.json_out()
+    def transit(self, src, tar, arrival_time=None, departure_time=None):
+        return self.p_transit(src, tar, arrival_time, departure_time)
+
+    @cherrypy.expose
+    @cherrypy.tools.json_out()
+    def biking(self, src, tar, arrival_time=None, departure_time=None):
+        return self.p_biking(src, tar, arrival_time, departure_time)
+
+    @cherrypy.expose
+    @cherrypy.tools.json_out()
+    def driving(self, src, tar, arrival_time=None, departure_time=None):
+        return self.p_driving(src, tar, arrival_time, departure_time)

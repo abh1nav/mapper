@@ -16,7 +16,7 @@ class RootHandler(object):
 def bootstrap():
     root = RootHandler()
     proxy = MapsProxy()
-    decision = Decision()
+    decision = Decision(proxy)
 
     cherrypy.tree.mount(root)
     cherrypy.tree.mount(proxy, '/proxy')
