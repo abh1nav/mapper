@@ -2,21 +2,23 @@
 # encoding: utf-8
 import cPickle
 import calendar
-
-import cherrypy
+from datetime import datetime
 import os
 import pickle
-from datetime import datetime
+
+import cherrypy
 import pandas as pd
-from sklearn.preprocessing import MinMaxScaler
-from sklearn.ensemble import RandomForestRegressor
-from sklearn.externals import joblib
+
+from cache import Cache
+from geosearch import BikePosts
 
 class Decision(object):
 
     def __init__(self, maps_proxy):
         self.maps = maps_proxy
-        self.model = BikeSpeedModel()
+        #self.model = BikeSpeedModel()
+        self.bike_posts = BikePosts()
+        self.cache = Cache()
 
     @cherrypy.expose
     @cherrypy.tools.json_out()
@@ -25,25 +27,75 @@ class Decision(object):
 
     @cherrypy.expose
     @cherrypy.tools.json_out()
-    def bike_owner(self, start_loc, end_loc, arrive_by=None):
-        if not arrive_by:
-            location_info = self.maps.biking(start_loc, end_loc, departure_time=calendar.timegm(datetime.now().timetuple()))
+    def bike_owner(self, start_lat, start_lng, end_lat, end_lng, arrive_by=None):
+        start_lat = float(start_lat)
+        start_lng = float(start_lng)
+        end_lat = float(end_lat)
+        end_lng = float(end_lng)
+        start_point = {
+            'lat': start_lat,
+            'lng': start_lng
+        }
+
+        end_point = {
+            'lat': end_lat,
+            'lng': end_lng
+        }
+
+        # Find the bike post nearest to the end point
+        mid_point = self.bike_posts.find_nearest(end_point['lat'], end_point['lng'])
+
+        if arrive_by is None:
+            arrive_by = calendar.timegm(datetime.now().timetuple())
+
+        if mid_point:
+            leg_2 = self.maps.p_walking('%s,%s' % (mid_point['lat'], mid_point['lng']),
+                                     '%s,%s' % (end_lat, end_lng), arrival_time=arrive_by)
+            leg_2_route = leg_2['routes'][0]
+            leg_2_distance = leg_2_route['legs'][0]['distance']['value']
+            leg_2_time = leg_2_route['legs'][0]['duration']['value'] / float(60)
+
+            leg_1_arrive_by = arrive_by - leg_2_time
+            leg_1 = self.maps.p_biking('%s,%s' % (start_lat, start_lng),
+                                     '%s,%s' % (mid_point['lat'], mid_point['lng']), arrival_time=leg_1_arrive_by)
+            leg_1_route = leg_1['routes'][0]
+            leg_1_distance = leg_1_route['legs'][0]['distance']['value']
+
+            model = BikeSpeedModel()
+            model.create_user_features(start_point, mid_point, alt=10)
+            model.scale()
+            leg_1_pred_speed = model.predict()
+            leg_1_distance_km = leg_1_distance/float(1000)
+            leg_1_time = leg_1_distance_km/leg_1_pred_speed * float(60)
+
+            return {
+                'leg_1': {
+                    'distance': leg_1_distance_km,
+                    'speed': leg_1_pred_speed,
+                    'time': leg_1_time,
+                    'mid_point': mid_point
+                },
+                'leg_2': {
+                    'distance': leg_2_distance,
+                    'time': leg_2_time
+                },
+                'time': leg_1_time + leg_2_time,
+                'unit': 'min'
+            }
+
         else:
-            location_info = self.maps.biking(start_loc, end_loc, arrival_time=arrive_by)
+            leg_1 = self.maps.p_biking('%s,%s' % (start_lat, start_lng),
+                                     '%s,%s' % (end_lat, end_lng), arrival_time=arrive_by)
+            leg_1_route = leg_1['routes'][0]
+            leg_1_distance = leg_1_route['legs'][0]['distance']['value']
+            leg_1_time = leg_1_route['legs'][0]['duration']['value']
 
-        route = location_info['routes'][0]
-        start_point = route['legs'][0]['start_location']
-        end_point = route['legs'][-1]['end_location']
-        distance = route['legs'][0]['distance']['value']
-
-        self.model.create_user_features(start_point, end_point, alt=10)
-        self.model.scale()
-        pred_speed = self.model.predict()
-        distance_km = distance/float(1000)
-        time_of_trip = pred_speed/distance_km * float(60)
-
-        return {'time': time_of_trip, 'unit': 'min'}
-
+            return {
+                'leg_1': {
+                    'distance': leg_1_distance,
+                    'time': leg_1_time
+                }
+            }
 
 
 class BikeSpeedModel:
