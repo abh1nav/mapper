@@ -249,6 +249,11 @@ class Decision(object):
             'lng': end_lng
         }
 
+        if arrive_by is None:
+            arrive_by = calendar.timegm(datetime.now().timetuple())
+        else:
+            arrive_by = long(arrive_by)
+
         leg_1 = self.maps.p_walking('%s,%s' % (start_lat, start_lng),
                                      '%s,%s' % (end_lat, end_lng), arrival_time=arrive_by)
         leg_1_route = leg_1['routes'][0]
@@ -289,6 +294,11 @@ class Decision(object):
             'lng': end_lng
         }
 
+        if arrive_by is None:
+            arrive_by = calendar.timegm(datetime.now().timetuple())
+        else:
+            arrive_by = long(arrive_by)
+
         leg_1 = self.maps.p_transit('%s,%s' % (start_lat, start_lng),
                                     '%s,%s' % (end_lat, end_lng), arrival_time=arrive_by)
         leg_1_route = leg_1['routes'][0]
@@ -304,10 +314,57 @@ class Decision(object):
                 {
                     'distance': leg_1_distance,
                     'time': leg_1_time,
-                    'mode': 'walking'
+                    'mode': 'transit'
                 }
             ],
             'time': leg_1_time,
             'unit': 'min'
         }
+
+    @cherrypy.expose
+    @cherrypy.tools.json_out()
+    def driving(self, start_lat, start_lng, end_lat, end_lng, arrive_by=None):
+        start_lat = float(start_lat)
+        start_lng = float(start_lng)
+        end_lat = float(end_lat)
+        end_lng = float(end_lng)
+
+        start_point = {
+            'lat': start_lat,
+            'lng': start_lng
+        }
+
+        end_point = {
+            'lat': end_lat,
+            'lng': end_lng
+        }
+
+        if arrive_by is None:
+            arrive_by = calendar.timegm(datetime.now().timetuple())
+        else:
+            arrive_by = long(arrive_by)
+
+        leg_1 = self.maps.p_driving('%s,%s' % (start_lat, start_lng),
+                                    '%s,%s' % (end_lat, end_lng), arrival_time=arrive_by)
+        leg_1_route = leg_1['routes'][0]
+        leg_1_distance = leg_1_route['legs'][0]['distance']['value'] / 1000.0
+        leg_1_time = leg_1_route['legs'][0]['duration']['value'] / 60.0
+
+        return {
+            'waypoints': [
+                start_point,
+                end_point
+            ],
+            'legs': [
+                {
+                    'distance': leg_1_distance,
+                    'time': leg_1_time,
+                    'mode': 'driving'
+                }
+            ],
+            'time': leg_1_time,
+            'unit': 'min'
+        }
+
+
 
