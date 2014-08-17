@@ -301,6 +301,22 @@ class Decision(object):
 
         leg_1 = self.maps.p_transit('%s,%s' % (start_lat, start_lng),
                                     '%s,%s' % (end_lat, end_lng), arrival_time=arrive_by)
+
+        if leg_1['status'] == 'ZERO_RESULTS':
+            return {
+                'waypoints': [
+                    start_point,
+                    end_point
+                ],
+                'legs': [
+                    {
+                        'mode': 'transit'
+                    }
+                ],
+                'time': '',
+                'unit': 'min'
+            }
+
         leg_1_route = leg_1['routes'][0]
         leg_1_distance = leg_1_route['legs'][0]['distance']['value'] / 1000.0
         leg_1_time = leg_1_route['legs'][0]['duration']['value'] / 60.0
