@@ -34,12 +34,15 @@ class Decision(object):
         route = location_info['routes'][0]
         start_point = route['legs'][0]['start_location']
         end_point = route['legs'][-1]['end_location']
+        distance = route['legs'][0]['distance']['value']
 
         self.model.create_user_features(start_point, end_point, alt=10)
         self.model.scale()
         pred_speed = self.model.predict()
+        distance_km = distance/float(1000)
+        time_of_trip = pred_speed/distance_km * float(60)
 
-        return {'time': "?", 'predicted_speed': pred_speed}
+        return {'time': time_of_trip, 'unit': 'min'}
 
 
 
