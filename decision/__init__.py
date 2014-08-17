@@ -73,11 +73,13 @@ class Decision(object):
                     'distance': leg_1_distance_km,
                     'speed': leg_1_pred_speed,
                     'time': leg_1_time,
-                    'mid_point': mid_point
+                    'mid_point': mid_point,
+                    'mode': 'cycling'
                 },
                 'leg_2': {
                     'distance': leg_2_distance,
-                    'time': leg_2_time
+                    'time': leg_2_time,
+                    'mode': 'walking'
                 },
                 'time': leg_1_time + leg_2_time,
                 'unit': 'min'
